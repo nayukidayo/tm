@@ -42,8 +42,7 @@ export default function Arduino({ prediction, started }) {
   )
 
   useEffect(() => {
-    if (prediction.length === 0) return
-    let max = 0
+    let max = 0.75
     let index = -1
     for (let i = 0; i < prediction.length; i++) {
       if (prediction[i].probability > max) {
@@ -51,6 +50,7 @@ export default function Arduino({ prediction, started }) {
         index = i
       }
     }
+    if (index === -1) return
     throttledSendMsg(prediction[index].className)
   }, [prediction])
 

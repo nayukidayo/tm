@@ -2,27 +2,20 @@ import { useState } from 'react'
 import { notifications } from '@mantine/notifications'
 import Predict from './Predict'
 
+const exclude = [
+  '背景噪声',
+  'background noise',
+  speechCommands.BACKGROUND_NOISE_TAG,
+  speechCommands.UNKNOWN_TAG,
+]
+
 export default function Predict73({ model, prediction, setPrediction, started, setStarted }) {
   const [loading, setLoading] = useState(false)
 
   const handlePlay = async () => {
     try {
       setLoading(true)
-      const labels = model.wordLabels()
-      await model.listen(
-        result => {
-          setPrediction(
-            labels.map((word, i) => ({
-              className: word,
-              probability: result.scores[i],
-            }))
-          )
-        },
-        {
-          overlapFactor: 0.5,
-          probabilityThreshold: 0.75,
-        }
-      )
+      await model.listen(listenCallback)
       setStarted(true)
     } catch (err) {
       console.log(err)
@@ -30,6 +23,16 @@ export default function Predict73({ model, prediction, setPrediction, started, s
     } finally {
       setLoading(false)
     }
+  }
+
+  function listenCallback(result) {
+    const arr = []
+    const words = model.wordLabels()
+    for (let i = 0; i < words.length; i++) {
+      if (exclude.includes(words[i])) continue
+      arr.push({ className: words[i], probability: result.scores[i] })
+    }
+    setPrediction(arr)
   }
 
   const handlePause = async () => {
@@ -42,15 +45,13 @@ export default function Predict73({ model, prediction, setPrediction, started, s
   }
 
   return (
-    <>
-      <Predict
-        started={started}
-        handlePause={handlePause}
-        handlePlay={handlePlay}
-        loading={loading}
-        model={model}
-        prediction={prediction}
-      />
-    </>
+    <Predict
+      started={started}
+      handlePause={handlePause}
+      handlePlay={handlePlay}
+      loading={loading}
+      model={model}
+      prediction={prediction}
+    />
   )
 }
