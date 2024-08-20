@@ -12,14 +12,22 @@ export default function Model73({ setModel }) {
     return model
   }
 
-  const getLocalModel = obj => {
-    throw new Error('Not implemented')
-    // TODO: speechCommands
-    // https://github.com/tensorflow/tfjs/blob/master/tfjs-core/src/io/browser_files.ts#L138
-    // model = await tfl.loadLayersModel(tf.io.fromMemory(
-    //   this.modelArtifactsOrURL.modelTopology,
-    //   this.modelArtifactsOrURL.weightSpecs,
-    //   this.modelArtifactsOrURL.weightData));
+  const getLocalModel = async obj => {
+    const filesHandler = tf.io.browserFiles([
+      obj['model.json'],
+      obj['weights.bin'] || obj['model.weights.bin'],
+    ])
+    const modelArtifacts = await filesHandler.load()
+    const metadataStr = await obj['metadata.json'].text()
+    
+    const model = speechCommands.create(
+      'BROWSER_FFT',
+      undefined,
+      modelArtifacts,
+      JSON.parse(metadataStr)
+    )
+    await model.ensureModelLoaded()
+    return model
   }
 
   return (
