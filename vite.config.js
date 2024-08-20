@@ -7,5 +7,6 @@ export default defineConfig({
   base: '/tma/',
   build: {
     target: 'esnext',
+    outDir: 'docs',
   },
 })
